@@ -8,7 +8,7 @@ The Sonoma iOS SDK lets you add Sonoma services to your iOS application.
 
 The SDK is currently in private beta release and supports the following services:
 
-1. **Analytics**: Sonoma Analytics helps you understand user behavior and customer engagement to improve your iOS app. The SDK automatically captures session count, device properties like model, OS version etc. and pages. You can define your own custom events to measure things that matter to your business. All the information captured is available in the Sonoma portal for you to analyze the data.
+1. **Analytics**: Sonoma Analytics helps you understand user behavior and customer engagement to improve your iOS app. The SDK automatically captures session count and device properties like model, OS version etc. You can define your own custom events to measure things that matter to your business. All the information captured is available in the Sonoma portal for you to analyze the data.
 
 2. **Crashes**: The Sonoma SDK will automatically generate a crash log every time your app crashes. The log is first written to the device's storage and when the user starts the app again, the crash report will be forwarded to Sonoma. Collecting crashes works for both beta and live apps, i.e. those submitted to App Store. Crash logs contain viable information for you to help resolve the issue. 
 
@@ -238,7 +238,134 @@ Once you set up and start the Sonoma SDK to use the Crashes module in your appli
     ```swift
     var enabled = SNMCrashes.isEnabled()
     ```
-  
+
+
+* **Advanced Scenarios:**  The Crashes module provides delegates for developers to perform additional actions before and when sending crash reports to Sonoma. This gives you added flexibility on the crash reports that will be sent.
+
+        **Objective-C**
+        ```objectivec
+        [SNMCrashes setDelegate:self];
+        ```
+
+        **Swift**
+        ```swift
+        [SNMCrashes setDelegate:self];
+        ```
+
+    The following delegates are provided:
+
+    * **Should the crash be processed:** Implement this delegates if you'd like to decide if a particular crash needs to be processed or not. For example - there could be some system level crashes that you'd want to ignore and don't want to send to Sonoma.
+
+        **Objective-C**
+        ```objectivec
+        - (BOOL)crashes:(SNMCrashes *)crashes shouldProcessErrorReport:(SNMErrorReport *)errorReport {
+            return YES; // return YES if the crash report should be processed, otherwise NO.
+        }
+        ```
+
+        **Swift**
+        ```swift
+        (BOOL)crashes:(SNMCrashes *)crashes shouldProcessErrorReport:(SNMErrorReport *)errorReport {
+            return true; // return true if the crash report should be processed, otherwise false.
+        }
+        ```
+        
+    * **User Confirmation:** If user privacy is important to you as a developer, you might want to get user confirmation before sending a crash report to Sonoma. The SDK exposes a callback where you can tell it to await user confirmation before sending any crash reports.
+    Your app is then responsible for obtaining confirmation, e.g. through a dialog prompt with one of these options - "Always Send", "Send", and "Don't send". Based on the user input, you will tell the SDK and the crash will then respectively be forwarded to Sonoma or not.
+
+
+        **Objective-C**
+        ```objectivec
+         [SNMCrashes setUserConfirmationHandler:(^(NSArray<SNMErrorReport *> *errorReports) {
+            return YES; // Return YES if the SDK should await user confirmation, otherwise NO.
+        }
+        ```
+
+        **Swift**
+        ```swift
+        [SNMCrashes setUserConfirmationHandler:(^(NSArray<SNMErrorReport *> *errorReports) {
+            return true; // Return true if the SDK should await user confirmation, otherwise false.
+        }
+        ```
+        
+        If you return `true`, your app should obtain user permission and message the SDK with the result using the following API:
+
+        **Objective-C**
+        ```objectivec
+        [SNMCrashes notifyWithUserConfirmation:SNMUserConfirmation];
+        ```
+
+        **Swift**
+        ```swift
+        [SNMCrashes notifyWithUserConfirmation:SNMUserConfirmation];
+        ```
+
+        Pass one option of `SNMUserConfirmationDontSend`, `SNMUserConfirmationAlways` or `SNMUserConfirmationSend`.
+
+    * **Binary attachment:**  If you'd like to attach text/binary data to a crash report, implement this callback. Before sending the crash, our SDK will add the attachment to the crash report and you can view it on the Sonoma portal.   
+
+        **Objective-C**
+        ```objectivec
+        - (SNMErrorAttachment *)attachmentWithCrashes:(SNMCrashes *)crashes forErrorReport:(SNMErrorReport *)errorReport {
+            // return your own created ErrorAttachment object
+        }
+        ```
+
+        **Swift**
+        ```swift
+        - (SNMErrorAttachment *)attachmentWithCrashes:(SNMCrashes *)crashes forErrorReport:(SNMErrorReport *)errorReport {
+            // return your own created ErrorAttachment object
+        }
+        ```
+
+    * **Before sending a crash report:** This callback will be invoked just before the crash is sent to Sonoma:
+
+        **Objective-C**
+        ```objectivec
+        - (void)crashes:(SNMCrashes *)crashes willSendErrorReport:(SNMErrorReport *)errorReport {
+            …
+        }
+        ```
+
+        **Swift**
+        ```swift
+        - (void)crashes:(SNMCrashes *)crashes willSendErrorReport:(SNMErrorReport *)errorReport {
+            …
+        }
+        ```
+
+    * **When sending a crash report succeeded:** This callback will be invoked after sending a crash report succeeded:
+
+        **Objective-C**
+        ```objectivec
+        - (void)crashes:(SNMCrashes *)crashes didSucceedSendingErrorReport:(SNMErrorReport *)errorReport {
+            …
+        }
+        ```
+
+        **Swift**
+        ```swift
+        - (void)crashes:(SNMCrashes *)crashes didSucceedSendingErrorReport:(SNMErrorReport *)errorReport {
+            …
+        }
+        ```
+
+    * **When sending a crash report failed:** This callback will be invoked after sending a crash report failed:
+
+        **Objective-C**
+        ```objectivec
+        - (void)crashes:(SNMCrashes *)crashes didFailSendingErrorReport:(SNMErrorReport *)errorReport withError:(NSError *)error {
+            …
+        }
+        ```
+
+        **Swift**
+        ```swift
+        - (void)crashes:(SNMCrashes *)crashes didFailSendingErrorReport:(SNMErrorReport *)errorReport withError:(NSError *)error {
+            …
+        }
+        ```
+
 ## 6. Advanced APIs
 
 * **Debugging**: You can control the amount of log messages that show up from the Sonoma SDK. Use the `setLogLevel` API to enable additional logging while debugging. By default, it is set to `SNMLogLevelAssert` for App Store environment, `SNMLogLevelWarning` otherwise.
