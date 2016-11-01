@@ -253,22 +253,22 @@ Once you set up and start the Sonoma SDK to use the Crashes module in your appli
         ```
 
     The following delegates are provided:
-
+    
     * **Should the crash be processed:** Implement this delegates if you'd like to decide if a particular crash needs to be processed or not. For example - there could be some system level crashes that you'd want to ignore and don't want to send to Sonoma.
 
-        **Objective-C**
-        ```objectivec
-        - (BOOL)crashes:(SNMCrashes *)crashes shouldProcessErrorReport:(SNMErrorReport *)errorReport {
-            return YES; // return YES if the crash report should be processed, otherwise NO.
-        }
-        ```
+          **Objective-C**
+          ```objectivec
+          - (BOOL)crashes:(SNMCrashes *)crashes shouldProcessErrorReport:(SNMErrorReport *)errorReport {
+              return YES; // return YES if the crash report should be processed, otherwise NO.
+          }
+          ```
 
-        **Swift**
-        ```swift
-        (BOOL)crashes:(SNMCrashes *)crashes shouldProcessErrorReport:(SNMErrorReport *)errorReport {
-            return true; // return true if the crash report should be processed, otherwise false.
-        }
-        ```
+          **Swift**
+          ```swift
+          (BOOL)crashes:(SNMCrashes *)crashes shouldProcessErrorReport:(SNMErrorReport *)errorReport {
+              return true; // return true if the crash report should be processed, otherwise false.
+          }
+          ```
         
     * **User Confirmation:** If user privacy is important to you as a developer, you might want to get user confirmation before sending a crash report to Sonoma. The SDK exposes a callback where you can tell it to await user confirmation before sending any crash reports.
     Your app is then responsible for obtaining confirmation, e.g. through a dialog prompt with one of these options - "Always Send", "Send", and "Don't send". Based on the user input, you will tell the SDK and the crash will then respectively be forwarded to Sonoma or not.
